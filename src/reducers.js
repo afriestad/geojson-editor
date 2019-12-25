@@ -1,5 +1,9 @@
 import { combineReducers } from 'redux-loop';
 
-const rootReducer = combineReducers({});
+import fileReaderReducer from './reducers/FileReaderReducers';
+
+const rootReducer = combineReducers({
+  files: fileReaderReducer,
+});
 
 export default rootReducer;

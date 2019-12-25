@@ -1,13 +1,35 @@
 import React from 'react';
 import {FilePlus} from 'react-feather';
 
+import { connect } from 'react-redux';
+
+import {filesSelectedForUpload} from '../../actions/FileReaderActions';
+
 import styles from './FileReader.module.css';
 
 class FileReader extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.fileField = document.createElement("INPUT");
+    this.fileField.setAttribute("type", "file");
+    this.fileField.setAttribute("multiple", "true");
+    this.fileField.addEventListener("change", this.onFileSelected);
+  }
+  
+  onClickUpload = () => {
+    this.fileField.click();
+  }
+  
+  onFileSelected = e => {
+    let files = e.target.files;
+    this.props.filesSelected(files);
+  }
+  
   render = () => {
     return (
       <div style={{display: "inline-block"}}>
-      <div className={styles.fileReaderButton}>
+      <div className={styles.fileReaderButton} onClick={this.onClickUpload}>
         <span>Read GeoJSON file</span> <FilePlus className={styles.fileReaderButtonIcon} />
       </div>
       </div>
@@ -15,4 +37,12 @@ class FileReader extends React.Component {
   }
 }
 
-export default FileReader;
+const mapStateToProps = state => ({
+  uploadedFiles: state.files.fileList,
+})
+
+const mapDispatchToProps = dispatch => ({
+  filesSelected: (fileList) => dispatch(filesSelectedForUpload(fileList)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(FileReader);
