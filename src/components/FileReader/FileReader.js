@@ -1,10 +1,17 @@
 import React from 'react';
+import {FilePlus} from 'react-feather';
 
-import './FileReader.css';
+import styles from './FileReader.module.css';
 
 class FileReader extends React.Component {
   render = () => {
-    return <input type="file" id="file-upload" />
+    return (
+      <div style={{display: "inline-block"}}>
+      <div className={styles.fileReaderButton}>
+        <span>Read GeoJSON file</span> <FilePlus className={styles.fileReaderButtonIcon} />
+      </div>
+      </div>
+    )
   }
 }
 

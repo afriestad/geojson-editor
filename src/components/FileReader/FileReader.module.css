@@ -1,0 +1,39 @@
+/* ==================================== */
+/* ========== BUTTON STYLES =========== */
+/* ==================================== */
+.fileReaderButton {
+  position: relative;
+  padding: 1rem;
+  line-height: 1.15;
+  font-size: 1rem;
+  box-shadow: 0 3px 10px #9f9f9f;
+  
+  background-color: green;
+  color: white;
+  
+  margin: 1rem;
+  display: flex;
+  
+  justify-content: center;
+  align-items: center;
+}
+
+.fileReaderButton:hover {
+  cursor: pointer;
+}
+
+/* ==================================== */
+/* =========== ICON STYLES ============ */
+/* ==================================== */
+.fileReaderButtonIcon {
+  color: inherit;
+  font-size: inherit;
+}
+
+.fileReaderButtonIcon:last-child {
+  margin-left: 0.5rem;
+}
+
+.fileReaderButtonIcon:first-child {
+  margin-right: 0.5rem;
+}
