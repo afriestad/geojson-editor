@@ -24,6 +24,9 @@ class FileReader extends React.Component {
   onFileSelected = e => {
     let files = e.target.files;
     this.props.filesSelected(files);
+    for (let file of files) {
+      console.log(file.name, file.size, file.type);
+    }
   }
   
   render = () => {
