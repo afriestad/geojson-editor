@@ -1,33 +1,50 @@
 import { loop, Cmd } from 'redux-loop';
 
+import {actions as toastrActions} from 'react-redux-toastr';
+
 import {
   FILES_SELECTED_FOR_UPLOAD,
-  FILES_READ_SUCCESSFULLY,
+  FILES_CATEGORISED_SUCCESSFULLY,
+  GEOJSON_READ_SUCCESSFULLY,
+  GEOJSON_TO_PARSE,
+  OTHER_FILES_SELECTED,
+  MAP_FILES_SELECTED
 } from '../actions/FileReaderActions';
 
-import {filesReadSuccessfully} from '../actions/FileReaderActions';
+import {
+  geoJsonReadSuccessfully,
+  filesCategorisedSuccessfully,
+  geoJsonToParse,
+  mapFilesSelected,
+  otherFilesSelected
+} from '../actions/FileReaderActions';
 
 const initialState = {
-  fileList: []
+  selectedFileList: [],
+  geoJsonFiles: [],
+  readFiles: [],
 };
 
 function categoriseSelectedFiles(fileList) {
   let geoJsonFiles = []
-  let mapFiles = false
-  let otherFiles = false
+  let mapFiles = []
+  let otherFiles = []
   for (let file of fileList) {
     if (file.name.length <= 5) {
       // Too short to be either map or geoJson
-      otherFiles = true
+      otherFiles.push(file)
     }
     else if (file.name.substring(file.name.length - 4).toLowerCase() === ".map") {
-      mapFiles = true
+      mapFiles.push(file)
     }
     else if (file.name.length >= 9 && file.name.substring(file.name.length - 8).toLowerCase() === ".geojson") {
       geoJsonFiles.push(file)
     }
+    else {
+      otherFiles.push(file)
+    }
   }
-  // Need to do something with this, and call it from somewhere
+  return [geoJsonFiles, mapFiles, otherFiles]
 }
 
 function readSelectedFiles(fileList) {
@@ -44,19 +61,94 @@ function fileReaderReducer(state = initialState, action) {
       return loop(
         {
           ...state,
-          fileList: [...state.fileList, ...action.files]
+          selectedFileList: [...state.selectedFileList, ...action.files]
         },
+        Cmd.run(categoriseSelectedFiles, {
+          successActionCreator: filesCategorisedSuccessfully,
+          args: [action.files]
+        })
+      )
+    case FILES_CATEGORISED_SUCCESSFULLY:
+      let cmds = [];
+      
+      if (action.geoJsonFiles.length) {
+        cmds.push(Cmd.action(geoJsonToParse(action.geoJsonFiles)))
+      }
+      
+      if (action.mapFiles.length) {
+        cmds.push(Cmd.action(mapFilesSelected(action.mapFiles)))
+      }
+      
+      if (action.otherFiles.length) {
+        cmds.push(Cmd.action(otherFilesSelected(action.otherFiles)))
+      }
+    
+      return loop(
+        {
+          ...state,
+          selectedFileList: state.selectedFileList.filter(file => !action.geoJsonFiles.concat(action.mapFiles, action.otherFiles).includes(file)),
+          geoJsonFiles: [...state.geoJsonFiles, ...action.geoJsonFiles],
+        },
+        Cmd.list(cmds)
+      )
+    case GEOJSON_TO_PARSE:
+      return loop(
+        state,
         Cmd.run(readSelectedFiles, {
-          successActionCreator: filesReadSuccessfully,
+          successActionCreator: geoJsonReadSuccessfully,
           args: [action.files]
         }
         )
       )
-    case FILES_READ_SUCCESSFULLY:
-      return {
+    case GEOJSON_READ_SUCCESSFULLY:
+      return loop(
+        {
         ...state,
-        readFiles: action.files
-      }
+        geoJsonFiles: state.geoJsonFiles.filter(file => !action.files.includes(file)),
+        readFiles: [...state.readFiles, ...action.files]
+        },
+        Cmd.action(
+          toastrActions.add({
+            type: 'success',
+            title: `Successfully Read ${action.files.length} .geojson Files`,
+            message: `The following files were imported: ${state.geoJsonFiles.slice(state.geoJsonFiles.length - action.files.length).map(file => file.name).join(", ")}`,
+            options: {
+              timeOut: 0,
+              progressBar: false,
+            }
+          })
+        )
+      )
+    case MAP_FILES_SELECTED:
+      return loop(
+        state,
+        Cmd.action(
+          toastrActions.add({
+              type: 'warning',
+              title: '.map File Selected',
+              message: `You selected one or more .map file(s), presumably downloaded from Azgaar's Fantasy Map Generator. Sadly, we do not currently support this format. Try uploading a cells .geojson file instead! Please check the following files: ${action.files.map(file => file.name).join(", ")}`,
+              options: {
+                timeOut: 0,
+                progressBar: false,
+              }
+            })
+          )
+        )
+    case OTHER_FILES_SELECTED:
+      return loop(
+        state,
+        Cmd.action(
+          toastrActions.add({
+            type: 'warning',
+            title: 'Unrecognised File Selected',
+            message: `You selected one or more file(s) that we didn't recognise. We only currently support .geojson files. Please check the following files: ${action.files.map(file => file.name).join(", ")}`,
+            options: {
+              timeOut: 0,
+              progressBar: false,
+            }
+          })
+        )
+      )
     default:
       return state
   }

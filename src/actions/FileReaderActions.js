@@ -1,5 +1,10 @@
 const FILES_SELECTED_FOR_UPLOAD = "FILES_SELECTED_FOR_UPLOAD";
-const FILES_READ_SUCCESSFULLY = "FILES_READ_SUCCESSFULLY";
+const FILES_CATEGORISED_SUCCESSFULLY = "FILES_CATEGORISED_SUCCESSFULLY";
+const GEOJSON_READ_SUCCESSFULLY = "GEOJSON_READ_SUCCESSFULLY";
+
+const GEOJSON_TO_PARSE = "GEOJSON_TO_PARSE";
+const MAP_FILES_SELECTED = "MAP_FILES_SELECTED";
+const OTHER_FILES_SELECTED = "OTHER_FILES_SELECTED";
 
 function filesSelectedForUpload(fileList) {
   return {
@@ -8,19 +13,57 @@ function filesSelectedForUpload(fileList) {
   }
 }
 
-function filesReadSuccessfully(files) {
+function filesCategorisedSuccessfully([geoJsonFiles, mapFiles, otherFiles]) {
   return {
-    type: FILES_READ_SUCCESSFULLY,
-    files: files
+    type: FILES_CATEGORISED_SUCCESSFULLY,
+    geoJsonFiles,
+    mapFiles,
+    otherFiles
+  }
+}
+
+function geoJsonReadSuccessfully(files) {
+  return {
+    type: GEOJSON_READ_SUCCESSFULLY,
+    files
+  }
+}
+
+function geoJsonToParse(files) {
+  return {
+    type: GEOJSON_TO_PARSE,
+    files
+  }
+}
+
+function mapFilesSelected(files) {
+  return {
+    type: MAP_FILES_SELECTED,
+    files
+  }
+}
+
+function otherFilesSelected(files) {
+  return {
+    type: OTHER_FILES_SELECTED,
+    files
   }
 }
 
 export {
   FILES_SELECTED_FOR_UPLOAD,
-  FILES_READ_SUCCESSFULLY
+  FILES_CATEGORISED_SUCCESSFULLY,
+  GEOJSON_READ_SUCCESSFULLY,
+  GEOJSON_TO_PARSE,
+  MAP_FILES_SELECTED,
+  OTHER_FILES_SELECTED,
 }
 
 export {
   filesSelectedForUpload,
-  filesReadSuccessfully
+  filesCategorisedSuccessfully,
+  geoJsonReadSuccessfully,
+  geoJsonToParse,
+  mapFilesSelected,
+  otherFilesSelected,
 }
