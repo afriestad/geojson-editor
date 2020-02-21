@@ -1,0 +1,5 @@
+.mapLayerContainer {
+  width: 100%;
+  height: calc(100% - 100px);
+  position: relative;
+}

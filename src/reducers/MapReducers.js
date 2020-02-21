@@ -16,11 +16,7 @@ function mapReducer(state = defaultState, action) {
   let cmds;
   switch (action.type) {
     case GEOJSON_PARSED_SUCCESSFULLY:
-      let cellJson = {};
-      let markerJson = {};
-      let riverJson = {};
-      let routeJson = {};
-      let uncategorisedJson = {};
+      let cellJson, markerJson, riverJson, routeJson, uncategorisedJson;
       
       // Some naïve sanity checks of the geoJson format
       if (action.parsed_json.type === "FeatureCollection" && action.parsed_json.features.length && action.parsed_json.features[0].type === "Feature") {
@@ -62,11 +58,11 @@ function mapReducer(state = defaultState, action) {
       
       return {
         ...state,
-        cellLayers: [...state.cellLayers, cellJson],
-        markerLayers: [...state.markerLayers, markerJson],
-        riverLayers: [...state.riverLayers, riverJson],
-        routeLayers: [...state.routeLayers, routeJson],
-        uncategorisedLayers: [...state.uncategorisedLayers, uncategorisedJson],
+        cellLayers: cellJson ? [...state.cellLayers, cellJson] : state.cellLayers,
+        markerLayers: markerJson ? [...state.markerLayers, markerJson] : state.markerLayers,
+        riverLayers: riverJson ? [...state.riverLayers, riverJson] : state.riverLayers,
+        routeLayers: routeJson ? [...state.routeLayers, routeJson] : state.routeLayers,
+        uncategorisedLayers: uncategorisedJson ? [...state.uncategorisedLayers, uncategorisedJson] : state.uncategorisedLayers,
       }
     default:
       return state;
