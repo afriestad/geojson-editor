@@ -8,7 +8,7 @@ import {
   GEOJSON_READ_SUCCESSFULLY,
   GEOJSON_TO_PARSE,
   OTHER_FILES_SELECTED,
-  MAP_FILES_SELECTED
+  MAP_FILES_SELECTED,
 } from '../actions/FileReaderActions';
 
 import {
@@ -16,8 +16,12 @@ import {
   filesCategorisedSuccessfully,
   geoJsonToParse,
   mapFilesSelected,
-  otherFilesSelected
+  otherFilesSelected,
 } from '../actions/FileReaderActions';
+
+import {
+  geoJsonParsedSuccessfully
+} from '../actions/MapActions';
 
 const initialState = {
   selectedFileList: [],
@@ -56,6 +60,7 @@ function readSelectedFiles(fileList) {
 }
 
 function fileReaderReducer(state = initialState, action) {
+  let cmds;
   switch(action.type) {
     case FILES_SELECTED_FOR_UPLOAD:
       return loop(
@@ -69,7 +74,7 @@ function fileReaderReducer(state = initialState, action) {
         })
       )
     case FILES_CATEGORISED_SUCCESSFULLY:
-      let cmds = [];
+      cmds = [];
       
       if (action.geoJsonFiles.length) {
         cmds.push(Cmd.action(geoJsonToParse(action.geoJsonFiles)))
@@ -96,28 +101,44 @@ function fileReaderReducer(state = initialState, action) {
         state,
         Cmd.run(readSelectedFiles, {
           successActionCreator: geoJsonReadSuccessfully,
+          failActionCreator: () => alert("Shit's broken yo"),
           args: [action.files]
         }
         )
       )
     case GEOJSON_READ_SUCCESSFULLY:
+      cmds = [];
+      
+      cmds.push(Cmd.action(
+        toastrActions.add({
+          type: 'success',
+          title: `Successfully Read ${action.files.length} .geojson Files`,
+          message: `The following files were imported: ${state.geoJsonFiles.slice(state.geoJsonFiles.length - action.files.length).map(file => file.name).join(", ")}`,
+          options: {
+            timeOut: 0,
+            progressBar: false,
+          }
+        })
+      ));
+      
+      if (action.files.length) {
+        for (let fileString of action.files) {
+          cmds.push(Cmd.run(
+            JSON.parse, {
+              successActionCreator: geoJsonParsedSuccessfully,
+              args: [fileString]
+            }
+          ));
+        }
+      }
+    
       return loop(
         {
         ...state,
         geoJsonFiles: state.geoJsonFiles.filter(file => !action.files.includes(file)),
         readFiles: [...state.readFiles, ...action.files]
         },
-        Cmd.action(
-          toastrActions.add({
-            type: 'success',
-            title: `Successfully Read ${action.files.length} .geojson Files`,
-            message: `The following files were imported: ${state.geoJsonFiles.slice(state.geoJsonFiles.length - action.files.length).map(file => file.name).join(", ")}`,
-            options: {
-              timeOut: 0,
-              progressBar: false,
-            }
-          })
-        )
+        Cmd.list(cmds)
       )
     case MAP_FILES_SELECTED:
       return loop(
